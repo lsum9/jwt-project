@@ -1,6 +1,7 @@
 package com.jwtproject.controller;
 
 import com.jwtproject.dto.UserDto;
+import com.jwtproject.security.CookieUtil;
 import com.jwtproject.service.LoginService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,7 @@ import org.springframework.web.servlet.ModelAndView;
 @RequiredArgsConstructor
 public class LoginController {
     private final LoginService loginService;
-
+    private final CookieUtil cookieUtil;
     @GetMapping("/login")
     public ModelAndView login(){
         ModelAndView mav = new ModelAndView("login");
@@ -31,6 +32,8 @@ public class LoginController {
     @Operation(summary = "로그인")
     @PostMapping("/sign-in")
     public ResponseEntity<UserDto> signIn(@RequestBody UserDto userDto) {
+        //토큰 response 쿠키헤더에 넣기
+        cookieUtil.addTokenToCookie(userDto.getToken());
         return ResponseEntity.ok(loginService.signIn(userDto));
     }
 

@@ -5,6 +5,8 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface LoginMapper {
+
+    //회원가입
     int signUp(UserDto userDto);
 
     UserDto signIn(UserDto userDto);
@@ -18,7 +20,5 @@ public interface LoginMapper {
     //아이디로 비밀번호 조회
     String pwdById(UserDto userDto);
 
-    //아이디로 비번조회되면 비번일치확인
-    UserDto pwdMatch(UserDto userDto);
 
 }

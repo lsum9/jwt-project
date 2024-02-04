@@ -35,10 +35,10 @@
     <select id="signIn" parameterType="UserDto" resultType="UserDto">
         SELECT
             user_id
+            ,user_type
         FROM
             tb_user
         WHERE user_id=#{userId}
-        AND user_pwd=#{userPwd}
     </select>
 
     <select id="pwdById" parameterType="UserDto" resultType="String">

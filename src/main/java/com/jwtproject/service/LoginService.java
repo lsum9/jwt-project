@@ -2,8 +2,8 @@ package com.jwtproject.service;
 
 import com.jwtproject.dto.UserDto;
 import com.jwtproject.mapper.LoginMapper;
+import com.jwtproject.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class LoginService {
     private final LoginMapper loginMapper;
     private final PasswordEncoder passwordEncoder;
+    private final TokenProvider tokenProvider;
 
 
     public boolean idCheck(UserDto userDto){
@@ -28,9 +29,15 @@ public class LoginService {
         boolean idCheck = idCheck(userDto);
         if(idCheck){
             //아이디 존재하면 비번일치여부 확인
-            String pwdById =  loginMapper.pwdById(userDto);
-
+            String pwdById =  loginMapper.pwdById(userDto);//저장된 비밀번호
             if(passwordEncoder.matches(userDto.getUserPwd(), pwdById)){
+                //유저아이디, 유저유형 가져오기
+                userDto=loginMapper.signIn(userDto);
+                System.out.println(userDto);
+                //비번 일치했을 경우
+                //토큰 발급
+                String token = tokenProvider.createToken(String.format("%s:%s", userDto.getUserId(), userDto.getUserType()));
+                userDto.setToken(token);
                 return userDto;
             }else{
                 throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
@@ -38,7 +45,7 @@ public class LoginService {
         }else{
             throw new IllegalArgumentException("아이디가 일치하지 않습니다.");
         }//아이디확인 if end
-    }//sign end
+    }//signIn end
 
     //회원가입
     public int signUp(UserDto userDto){
