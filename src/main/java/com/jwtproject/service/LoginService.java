@@ -2,6 +2,7 @@ package com.jwtproject.service;
 
 import com.jwtproject.dto.UserDto;
 import com.jwtproject.mapper.LoginMapper;
+import com.jwtproject.mapper.RefreshTokenMapper;
 import com.jwtproject.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +14,7 @@ public class LoginService {
     private final LoginMapper loginMapper;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
+    private final RefreshTokenMapper refreshTokenMapper;
 
 
     public boolean idCheck(UserDto userDto){
@@ -33,11 +35,21 @@ public class LoginService {
             if(passwordEncoder.matches(userDto.getUserPwd(), pwdById)){
                 //유저아이디, 유저유형 가져오기
                 userDto=loginMapper.signIn(userDto);
-                System.out.println(userDto);
                 //비번 일치했을 경우
                 //토큰 발급
                 String token = tokenProvider.createToken(String.format("%s:%s", userDto.getUserId(), userDto.getUserType()));
                 userDto.setToken(token);
+                //리프레시 토큰이 이미 있을 경우 토큰을 갱신하고 없을 경우 토큰 추가
+                int cnt = refreshTokenMapper.selectRefreshToken(userDto.getUserId());
+                userDto.setRefreshToken(tokenProvider.createRefreshToken());
+                if(cnt != 0){
+                    //리프레시 토큰 갱신
+                    refreshTokenMapper.updateRefreshToken(userDto);
+                }else{
+                    //리프레시 토큰 발급
+                    refreshTokenMapper.insertRefreshToken(userDto);
+                }
+                //반영결과 리턴
                 return userDto;
             }else{
                 throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jwtproject.mapper.RefreshTokenMapper">
+    <insert id="insertRefreshToken" parameterType="UserDto">
+        INSERT INTO
+            lsum9.tb_refresh_token
+                (
+                 user_id
+                , refresh_token
+                )
+            VALUES
+                (
+                 #{userId}
+                , #{refreshToken}
+                );
+
+    </insert>
+    <update id="updateRefreshToken" parameterType="String">
+        UPDATE
+            tb_refresh_token
+        SET refresh_token=#{refreshToken}
+        WHERE user_id=#{userId};
+    </update>
+
+    <select id="selectRefreshToken" parameterType="String" resultType="int">
+        SELECT
+            count(refresh_token)
+        FROM
+            tb_refresh_token
+        WHERE user_id=#{userId};
+    </select>
+</mapper>
