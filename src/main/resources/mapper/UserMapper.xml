@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jwtproject.mapper.UserMapper">
+
+    <select id="selectUserInfo" resultType="UserDto" parameterType="String">
+        SELECT
+            user_id
+            ,user_type
+            ,user_name
+            ,user_email
+        FROM tb_user
+        WHERE user_id=#{userId}
+    </select>
+
+    <update id="updateUser" parameterType="UserDto">
+        UPDATE lsum9.tb_user
+        SET
+            user_name=#{userName}
+          , user_email=#{userEmail}
+        WHERE user_id=#{userId}
+    </update>
+
+    <delete id="deleteUser" parameterType="String">
+        DELETE FROM lsum9.tb_user
+        WHERE user_id=#{userId};
+    </delete>
+</mapper>

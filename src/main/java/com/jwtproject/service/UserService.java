@@ -38,14 +38,14 @@ public class UserService {
     //회원정보 수정
     @Transactional
     public int updateUser(String userId, UserDto userDto) {
-        int updateCnt = userMapper.updateUser(userId, userDto);
+        userDto.setUserId(userId);
+        int updateCnt = userMapper.updateUser(userDto);
 
         //비번확인
         if(updateCnt == 0){
-            throw new NoSuchElementException("회원탈퇴에 실패했습니다.");
+            throw new NoSuchElementException("회원정보 수정에 실패했습니다.");
         }else{
             return updateCnt;
         }
-        //throw new NoSuchElementException("아이디 또는 비밀번호가 일치하지 않습니다.");
     }
 }

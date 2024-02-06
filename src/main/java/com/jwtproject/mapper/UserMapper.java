@@ -10,10 +10,6 @@ public interface UserMapper {
 
     int deleteUser(String userId);
 
-    int updateUser(String userId, UserDto userDto);
-
-    //아이디로 비밀번호 조회
-    String pwdCheck(String userId);
-
+    int updateUser(UserDto userDto);
 
 }
