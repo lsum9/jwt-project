@@ -9,7 +9,5 @@ import java.util.List;
 public interface AdminMapper {
 
     List<UserDto> selectUserList();
-    UserDto idCheck(UserDto userDto);
-
 
 }
