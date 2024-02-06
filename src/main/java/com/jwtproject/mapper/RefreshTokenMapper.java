@@ -9,7 +9,7 @@ import java.util.List;
 @Mapper
 public interface RefreshTokenMapper {
 
-    int selectRefreshToken(String userId);
+    String selectRefreshToken(String userId);
     int insertRefreshToken(UserDto userDto);
 
     int updateRefreshToken(UserDto userDto);

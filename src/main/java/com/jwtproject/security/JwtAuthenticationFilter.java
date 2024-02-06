@@ -1,5 +1,6 @@
 package com.jwtproject.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,18 +30,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            String token = parseBearerToken(request);
+            String token = parseBearerToken(request, HttpHeaders.AUTHORIZATION);
             User user = parseUserSpecification(token);
             AbstractAuthenticationToken authenticated = UsernamePasswordAuthenticationToken.authenticated(user, token, user.getAuthorities());
             authenticated.setDetails(new WebAuthenticationDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticated);
+        } catch (ExpiredJwtException e) {	// 변경
+        reissueAccessToken(request, response, e);
         } catch (Exception e) {
             request.setAttribute("exception", e);	// try-catch로 예외를 감지하여 request에 추가
         }
         filterChain.doFilter(request, response);
     }
 
-    private String parseBearerToken(HttpServletRequest request) {
+    private String parseBearerToken(HttpServletRequest request, String authorization) {
         return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
                 .filter(token -> token.substring(0, 7).equalsIgnoreCase("Bearer "))
                 .map(token -> token.substring(7))
@@ -55,5 +58,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 .split(":");
 
         return new User(split[0], "", List.of(new SimpleGrantedAuthority(split[1])));
+    }
+
+    private void reissueAccessToken(HttpServletRequest request, HttpServletResponse response, Exception exception) {
+        try {
+            String refreshToken = parseBearerToken(request, "Refresh-Token");
+            if (refreshToken == null) {
+                throw exception;
+            }
+            String oldAccessToken = parseBearerToken(request, HttpHeaders.AUTHORIZATION);
+            tokenProvider.validateRefreshToken(refreshToken, oldAccessToken);
+            String newAccessToken = tokenProvider.recreateAccessToken(oldAccessToken);
+            User user = parseUserSpecification(newAccessToken);
+            AbstractAuthenticationToken authenticated = UsernamePasswordAuthenticationToken.authenticated(user, newAccessToken, user.getAuthorities());
+            authenticated.setDetails(new WebAuthenticationDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authenticated);
+
+            response.setHeader("New-Access-Token", newAccessToken);
+        } catch (Exception e) {
+            request.setAttribute("exception", e);
+        }
     }
 }

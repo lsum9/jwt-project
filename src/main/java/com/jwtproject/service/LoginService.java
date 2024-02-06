@@ -40,9 +40,9 @@ public class LoginService {
                 String token = tokenProvider.createToken(String.format("%s:%s", userDto.getUserId(), userDto.getUserType()));
                 userDto.setToken(token);
                 //리프레시 토큰이 이미 있을 경우 토큰을 갱신하고 없을 경우 토큰 추가
-                int cnt = refreshTokenMapper.selectRefreshToken(userDto.getUserId());
+                String registRefreshToken = refreshTokenMapper.selectRefreshToken(userDto.getUserId());
                 userDto.setRefreshToken(tokenProvider.createRefreshToken());
-                if(cnt != 0){
+                if(registRefreshToken != null){
                     //리프레시 토큰 갱신
                     refreshTokenMapper.updateRefreshToken(userDto);
                 }else{
