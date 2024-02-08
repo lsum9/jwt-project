@@ -36,15 +36,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authenticated.setDetails(new WebAuthenticationDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticated);
         } catch (ExpiredJwtException e) {	// 변경
-        reissueAccessToken(request, response, e);
+            System.out.println("만료확인");
+            reissueAccessToken(request, response, e);
         } catch (Exception e) {
             request.setAttribute("exception", e);	// try-catch로 예외를 감지하여 request에 추가
         }
         filterChain.doFilter(request, response);
     }
 
-    private String parseBearerToken(HttpServletRequest request, String authorization) {
-        return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
+    private String parseBearerToken(HttpServletRequest request, String headerName) {
+        return Optional.ofNullable(request.getHeader(headerName))
                 .filter(token -> token.substring(0, 7).equalsIgnoreCase("Bearer "))
                 .map(token -> token.substring(7))
                 .orElse(null);
@@ -73,7 +74,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             AbstractAuthenticationToken authenticated = UsernamePasswordAuthenticationToken.authenticated(user, newAccessToken, user.getAuthorities());
             authenticated.setDetails(new WebAuthenticationDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticated);
-
             response.setHeader("New-Access-Token", newAccessToken);
         } catch (Exception e) {
             request.setAttribute("exception", e);

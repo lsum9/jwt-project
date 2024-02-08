@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jwtproject.mapper.RefreshTokenMapper;
 import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,13 @@ public class TokenProvider {
     private final String issuer;
     private final long reissueLimit;
 
-    private final RefreshTokenMapper refreshTokenMapper;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private RefreshTokenMapper refreshTokenMapper;
+    @Autowired
+    public void refreshTokenMapper(RefreshTokenMapper refreshTokenMapper){
+        this.refreshTokenMapper = refreshTokenMapper;
+    }
 
     public TokenProvider(
             @Value("${secret-key}") String secretKey,
@@ -52,7 +58,7 @@ public class TokenProvider {
                 .setSubject(userSpecification)  // JWT 토큰 제목
                 .setIssuer(issuer)  // JWT 토큰 발급자
                 .setIssuedAt(Timestamp.valueOf(LocalDateTime.now()))    // JWT 토큰 발급 시간
-                .setExpiration(Date.from(Instant.now().plus(expirationMinutes, ChronoUnit.HOURS)))    // JWT 토큰 만료 시간
+                .setExpiration(Date.from(Instant.now().plus(expirationMinutes, ChronoUnit.MINUTES)))    // JWT 토큰 만료 시간
                 .compact(); // JWT 토큰 생성
     }
 
@@ -80,12 +86,15 @@ public class TokenProvider {
         return createToken(subject);
     }
 
+    //수정요망
     @Transactional(readOnly = true)
     public void validateRefreshToken(String refreshToken, String oldAccessToken) throws JsonProcessingException {
+        System.out.println("validation 호출되긴함?");
         //리프레시 토큰 유효성 검사
         validateAndParseToken(refreshToken);
         String userId = decodeJwtPayloadSubject(oldAccessToken).split(":")[0];
         String registRefreshToken = refreshTokenMapper.selectRefreshToken(userId);
+
         if(!Objects.equals(refreshToken, registRefreshToken)){
             //리프레시 토큰이 유효하지 않은 경우
             throw new ExpiredJwtException(null, null, "Refresh token expired.");
